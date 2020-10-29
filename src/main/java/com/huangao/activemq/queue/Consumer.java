@@ -1,8 +1,10 @@
 package com.huangao.activemq.queue;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.camel.component.test.TestComponent;
 
 import javax.jms.*;
+import java.io.IOException;
 
 /**
  * @author :huangao
@@ -11,7 +13,7 @@ public class Consumer {
 
     private static final String ACTIVEMQ_URL = "tcp://192.168.127.201:61616";
 
-    public static void main(String[] args) throws JMSException {
+    public static void main(String[] args) throws JMSException, IOException {
         //1.创建连接工厂
         ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(ACTIVEMQ_URL);
         //2.通过连接工厂，获得连接并启动访问
@@ -24,6 +26,8 @@ public class Consumer {
         //5.创建消费者
         MessageConsumer messageConsumer = session.createConsumer(queue);
         //6.消费消息
+        //方式一 receive方式
+        /**
         while(true){
             TextMessage textMessage = (TextMessage) messageConsumer.receive();
             if(textMessage!=null){
@@ -36,5 +40,26 @@ public class Consumer {
         messageConsumer.close();
         session.close();
         connection.close();
+         **/
+        //方式二：监听器方式
+        messageConsumer.setMessageListener(new MessageListener() {
+            public void onMessage(Message message) {
+                if(message!=null && message instanceof TextMessage){
+                    TextMessage textMessage = (TextMessage) message;
+                    try {
+                        System.out.println("接收到了消息："+((TextMessage) message).getText());
+                    } catch (JMSException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        //关闭资源
+        System.in.read();
+        messageConsumer.close();
+        session.close();
+        connection.close();
+
     }
 }
