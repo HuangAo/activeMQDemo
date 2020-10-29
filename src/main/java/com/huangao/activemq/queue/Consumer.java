@@ -7,7 +7,7 @@ import javax.jms.*;
 /**
  * @author :huangao
  */
-public class Producer {
+public class Consumer {
 
     private static final String ACTIVEMQ_URL = "tcp://192.168.127.201:61616";
 
@@ -21,17 +21,20 @@ public class Producer {
         Session session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
         //4.创建目的地(队列/主题)
         Queue queue = session.createQueue("myQueue");
-        //5.创建消息生产者
-         MessageProducer messageProducer = session.createProducer(queue);
-        //6.发送消息
-        for(int i=0;i<3;i++){
-            TextMessage textMessage = session.createTextMessage("message----"+i);
-            messageProducer.send(textMessage);
+        //5.创建消费者
+        MessageConsumer messageConsumer = session.createConsumer(queue);
+        //6.消费消息
+        while(true){
+            TextMessage textMessage = (TextMessage) messageConsumer.receive();
+            if(textMessage!=null){
+                System.out.println("消费者接收到消息："+textMessage.getText());
+            }else{
+                break;
+            }
         }
-        //7.关闭资源
-        messageProducer.close();
+        //关闭资源
+        messageConsumer.close();
         session.close();
         connection.close();
-        System.out.println("消息发送完毕。。。。。。");
     }
 }
